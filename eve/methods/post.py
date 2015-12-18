@@ -249,6 +249,9 @@ def post_internal(resource, payl=None, skip_validation=False):
         # update oplog if needed
         oplog_push(resource, documents, 'POST')
 
+        # insert versioning docs
+        insert_versioning_documents(resource, documents)
+
         # assign document ids
         for document in documents:
             # either return the custom ID_FIELD or the id returned by
@@ -268,8 +271,7 @@ def post_internal(resource, payl=None, skip_validation=False):
             result = marshal_write_response(result, resource)
             results.append(result)
 
-        # insert versioning docs
-        insert_versioning_documents(resource, documents)
+
 
         # notify callbacks
         getattr(app, "on_inserted")(resource, documents)
