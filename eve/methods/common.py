@@ -795,6 +795,8 @@ def marshal_write_response(document, resource):
                 pass
     return document
 
+from mongoengine.fields import GridFSProxy
+from bson import ObjectId
 
 def store_media_files(document, resource, original=None):
     """ Store any media file in the underlying media store and update the
@@ -821,10 +823,15 @@ def store_media_files(document, resource, original=None):
 
         if document[field]:
             # store file and update document with file's unique id/filename
-            # also pass in mimetype for use when retrieving the file
-            document[field] = app.media.put(
-                document[field], filename=document[field].filename,
-                content_type=document[field].mimetype, resource=resource)
+            # also pass in mimetype for use when retrieving the
+            if isinstance(document[field], GridFSProxy):
+                document[field] = document[field].grid_id
+            elif isinstance(document[field], ObjectId):
+                document[field] = document[field]
+            else:
+                document[field] = app.media.put(
+                    document[field], filename=document[field].filename,
+                    content_type=document[field].mimetype, resource=resource)
 
 
 def resource_media_fields(document, resource):
